@@ -1,0 +1,41 @@
+name: Deploy SpotterRDS Frontend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      ORGANIZATION_ID: ${{ secrets.FRONTEND_ORG }}
+      DEPLOY_KEY: ${{ secrets.FRONTEND_DK }}
+      PROJECT_ID: ${{ secrets.FRONTEND_PID }}
+      BASE_DIR: ./frontend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+        working-directory: "${BASE_DIR}/spotterrods-web"
+
+      - name: Build App
+        run: npm run build
+        working-directory: "${BASE_DIR}/spotterrods-web"
+
+      - name: Deploy to Production
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${DEPLOY_KEY}
+          vercel-org-id: ${ORGANIZATION_ID}
+          vercel-project-id: ${PROJECT_ID}
+          working: "${BASE_DIR}/spotterrods-web"
