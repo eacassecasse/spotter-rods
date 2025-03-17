@@ -1,4 +1,4 @@
-### **RODS Compliance Tool**  
+### **SpotterRODS**  
 **SpotterRODS** is a **Django + React** web application designed to help **interstate truck drivers** and **motor carriers** comply with **FMCSA Hours of Service (HOS)** regulations. This tool simplifies tracking **Record of Duty Status (RODS)**, enforces **Electronic Logging Device (ELD)** requirements, and ensures adherence to **FMCSA** rules. Key features include real-time duty status logging, sleeper berth tracking, 30-minute break reminders, and automatic RODS generation. Dockerized for easy deployment, this app enhances road safety and reduces driver fatigue while streamlining compliance for motor carriers. 🚛💨  
 
 ---
