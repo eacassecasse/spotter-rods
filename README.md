@@ -25,7 +25,7 @@
 ### **Getting Started**
 1. Clone the repository:  
    ```bash
-   git clone https://github.com/your-username/rods-compliance-tool.git
+   git clone https://github.com/your-username/spotter-rods.git
    ```
 2. Run the app with Docker:  
    ```bash
