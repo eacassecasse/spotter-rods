@@ -8,7 +8,7 @@ from users.models import User
 class Carrier(BaseModel):
     """ Carrier class """
     name = models.CharField(max_length=255)
-    address = models.TextField()
+    address = models.CharField(max_length=255)
 
     class Meta:
         db_table = 'carriers'
