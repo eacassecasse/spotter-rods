@@ -4,10 +4,12 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from core.models import BaseModel
 
+
 class UserRoles:
     DISPATCHER = 'dispatcher'
     DRIVER = 'driver'
     TECHNICIAN = 'technician'
+
 
 ROLES = [
     (UserRoles.DISPATCHER, 'dispatcher'),

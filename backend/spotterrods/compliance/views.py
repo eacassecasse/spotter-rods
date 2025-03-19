@@ -1,3 +1,22 @@
 from django.shortcuts import render
 
-# Create your views here.
+from .views import AdverseDrivingConditionList
+from .views import AdverseDrivingConditionDetail
+from .views import DutyRemarkList
+from .views import DutyRemarkDetail
+from .views import DutyStatusList
+from .views import DutyStatusDetail
+from .views import OnDutyLimitList
+from .views import OnDutyLimitDetail
+from .views import OtherDutyList
+from .views import OtherDutyDetail
+from .views import RestBreakList
+from .views import RestBreakDetail
+from .views import RestartList
+from .views import RestartDetail
+from .views import ShortHaulList
+from .views import ShortHaulDetail
+from .views import ShortHaulRemarkList
+from .views import ShortHaulRemarkDetail
+from .views import SleeperBerthList
+from .views import SleeperBerthDetail

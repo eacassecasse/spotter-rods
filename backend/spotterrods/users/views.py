@@ -1,3 +1,5 @@
 from django.shortcuts import render
 
-# Create your views here.
+from .views import UserCreate
+from .views import UserDetail
+from .views import UserLogin
