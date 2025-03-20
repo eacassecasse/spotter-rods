@@ -17,7 +17,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
+from django.urls.conf import include
 
 urlpatterns = [
+    path('api/v1/carriers/', include('fleet.urls')),
+    path('api/v1/auth/', include('users.urls')),
+    path('api/v1/drivers/<pk:driver_id>', include('logs.urls')),
+    path('api/v1/carriers/<pk:carrier_id>', include('shipping.urls')),
+    path('api/v1/drivers/<pk:driver_id>', include('compliance.urls')),
     path("admin/", admin.site.urls),
 ]
