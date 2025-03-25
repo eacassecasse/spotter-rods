@@ -9,12 +9,16 @@ class UserRoles:
     DISPATCHER = 'dispatcher'
     DRIVER = 'driver'
     TECHNICIAN = 'technician'
+    CARRIER_MANAGER = 'carrier manager'
+    ADMIN = 'admin'
 
 
 ROLES = [
     (UserRoles.DISPATCHER, 'dispatcher'),
     (UserRoles.DRIVER, 'driver'),
     (UserRoles.TECHNICIAN, 'technician'),
+    (UserRoles.ADMIN, 'admin'),
+    (UserRoles.CARRIER_MANAGER, 'carrier manager')
     ]
 
 

@@ -1,11 +1,13 @@
 #!/usr/bin/python3
 """ User Serializer Module for EduAccess project """
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from core.serializers import BaseSerializer
 
 from core.models import BaseModel
-from ..models import User
+from ..models import User, UserRoles
 
 
 class UserSerializer(BaseSerializer):
@@ -15,7 +17,24 @@ class UserSerializer(BaseSerializer):
         model = User
         fields = ['id', 'name', 'username', 'role', 'password']
         extra_kwargs = {'password': {'write_only': True}}
-
+        
+        
+    def validate_role(self, value):
+        valid_roles = [role[0] for role in UserRoles]
+        
+        if value not in valid_roles:
+            raise serializers.ValidationError(f"Invalid role. Must be one of: {', '.join(valid_roles)}")
+        
+        return value
+    
+    def validate_password(self, value):
+        try:
+            validate_password(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+        
+        return value
+    
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         user = super().create(validated_data)
