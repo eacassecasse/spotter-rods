@@ -7,12 +7,13 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from core.models import BaseModel
+from core.views import BaseViewMixin
 from ..models import Truck
 from ..serializers import TruckSerializer
 from users.views import IsCarrierManager, IsAdmin
 
 
-class TruckList(generics.ListCreateAPIView):
+class TruckList(generics.ListCreateAPIView, BaseViewMixin):
     queryset = Truck.objects.all()
     serializer_class = TruckSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
@@ -23,22 +24,9 @@ class TruckList(generics.ListCreateAPIView):
         if self.request.method == 'POST':
             return [IsAuthenticated(), IsCarrierManager() | IsAdmin()]
         return [IsAuthenticated()]
-    
-    def handle_exception(self, exc):
-        if isinstance(exc, PermissionDenied):
-            return Response(
-                {"error": "You do not have the permission to perfom this action"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        elif isinstance(exc, ValidationError):
-            return Response(
-                {"error": "Invalid input", "details": exc.detail},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return super().handle_exception(exc)
 
 
-class TruckDetail(generics.RetrieveUpdateDestroyAPIView):
+class TruckDetail(generics.RetrieveUpdateDestroyAPIView, BaseViewMixin):
     queryset = Truck.objects.all()
     serializer_class = TruckSerializer
     
@@ -46,16 +34,3 @@ class TruckDetail(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
             return [IsAuthenticated(), IsCarrierManager() | IsAdmin()]
         return [IsAuthenticated()]
-    
-    def handle_exception(self, exc):
-        if isinstance(exc, PermissionDenied):
-            return Response(
-                {"error": "You do not have the permission to perfom this action"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        elif isinstance(exc, ValidationError):
-            return Response(
-                {"error": "Invalid input", "details": exc.detail},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return super().handle_exception(exc)

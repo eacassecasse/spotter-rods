@@ -13,3 +13,6 @@ class DutyRemarkSerializer(BaseSerializer):
     class Meta:
         model = DutyRemark
         fields = ['id', 'description', 'duty']
+        related_serializers = {
+            'duty': 'compliance.serializers.DutyStatusSerializer'
+        }

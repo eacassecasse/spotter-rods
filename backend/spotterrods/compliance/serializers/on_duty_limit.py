@@ -13,3 +13,6 @@ class OnDutyLimitSerializer(BaseSerializer):
     class Meta:
         model = OnDutyLimit
         fields = ['id', 'start_date', 'end_date', 'is_7_day', 'total_hours', 'driver']
+        related_serializers = {
+            'driver': 'fleet.serializers.DriverSerializer'
+        }

@@ -13,3 +13,6 @@ class AdverseDrivingConditionSerializer(BaseDutySerializer):
     class Meta:
         model = AdverseDrivingCondition
         fields = ['id', 'description', 'extended_driving_time', 'driver']
+        related_serializers = {
+            'driver': 'fleet.serializers.DriverSerializer'
+        }

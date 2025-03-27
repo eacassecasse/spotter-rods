@@ -7,7 +7,7 @@ from rest_framework import serializers
 from core.serializers import BaseSerializer
 
 from core.models import BaseModel
-from ..models import User, UserRoles
+from ..models import User, UserRoles, ROLES
 
 
 class UserSerializer(BaseSerializer):
@@ -20,7 +20,7 @@ class UserSerializer(BaseSerializer):
         
         
     def validate_role(self, value):
-        valid_roles = [role[0] for role in UserRoles]
+        valid_roles = [role[0] for role in ROLES]
         
         if value not in valid_roles:
             raise serializers.ValidationError(f"Invalid role. Must be one of: {', '.join(valid_roles)}")
@@ -56,14 +56,22 @@ class UserSerializer(BaseSerializer):
 
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=100)
-    password = serializers.CharField()
+    password = serializers.CharField(write_only=True)
 
     def validate(self, data):
         username = data.get('username')
         password = data.get('password')
+        
+        if not username or not password:
+            raise serializers.ValidationError('Both username and password are required')
 
         user = authenticate(username=username, password=password)
 
         if not user:
             raise serializers.ValidationError('Invalid credentials')
-        return {'user': user}
+        
+        return {
+            'username': username,
+            'password': password,
+            'user': user
+        }

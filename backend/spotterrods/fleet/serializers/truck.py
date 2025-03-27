@@ -13,3 +13,6 @@ class TruckSerializer(BaseSerializer):
     class Meta:
         model = Truck
         fields = ['id', 'brand', 'number', 'current_mileage', 'carrier']
+        related_serializers = {
+            'carrier': 'fleet.serializers.CarrierSerializer'
+        }

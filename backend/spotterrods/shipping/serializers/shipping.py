@@ -13,3 +13,6 @@ class ShippingSerializer(BaseSerializer):
     class Meta:
         model = Shipping
         fields = ['id', 'number', 'commodity', 'carrier']
+        related_serializers = {
+            'carrier': 'fleet.serializers.CarrierSerializer'
+        }

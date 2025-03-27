@@ -13,3 +13,6 @@ class RestartSerializer(BaseDutySerializer):
     class Meta:
         model = Restart
         fields = ['id', 'is_completed', 'driver']
+        related_serializers = {
+            'driver': 'fleet.serializers.DriverSerializer'
+        }

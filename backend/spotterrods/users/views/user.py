@@ -7,7 +7,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-from django.contrib.auth import authenticate
 from django.core.cache import cache
 from django.http import Http404
 
@@ -50,7 +49,7 @@ class IsCarrierManager(BasePermission):
         return request.user.role == UserRoles.CARRIER_MANAGER
 
 class UserCreate(APIView):
-    permission_classes = [IsTechnician]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -75,10 +74,10 @@ class UserLogin(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        username = serializer.validated_data['username']
-        password = serializer.validated_data['password']
         
-        user = authenticate(request, username=username, password=password)
+        
+        user = serializer.validated_data['user']
+        print(user)
 
         if not user:
             return Response(

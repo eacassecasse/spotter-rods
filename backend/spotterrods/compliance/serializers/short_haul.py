@@ -13,3 +13,6 @@ class ShortHaulSerializer(BaseSerializer):
     class Meta:
         model = ShortHaul
         fields = ['id', 'date', 'is_cdl', 'radius_miles', 'return_time', 'description', 'driver']
+        related_serializers = {
+            'driver': 'fleet.serializers.DriverSerializer'
+        }

@@ -14,3 +14,6 @@ class TrailerSerializer(BaseSerializer):
     class Meta:
         model = Trailer
         fields = ['id', 'number', 'in_use', 'carrier']
+        related_serializers = {
+            'carrier': 'fleet.serializers.CarrierSerializer'
+        }

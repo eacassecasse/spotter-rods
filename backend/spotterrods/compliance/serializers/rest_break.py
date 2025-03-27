@@ -13,3 +13,6 @@ class RestBreakSerializer(BaseDutySerializer):
     class Meta:
         model = RestBreak
         fields = ['id', 'type', 'driver']
+        related_serializers = {
+            'driver': 'fleet.serializers.DriverSerializer'
+        }

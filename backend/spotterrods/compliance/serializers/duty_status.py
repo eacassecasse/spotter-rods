@@ -14,6 +14,9 @@ class DutyStatusSerializer(BaseDutySerializer):
     class Meta:
         model = DutyStatus
         fields = ['id', 'status', 'location', 'driver']
+        related_serializers = {
+            'driver': 'fleet.serializers.DriverSerializer'
+        }
         
     def validate_status(self, value):
         current_status = self.instance.status if self.instance else None

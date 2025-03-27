@@ -13,3 +13,6 @@ class OtherDutySerializer(BaseDutySerializer):
     class Meta:
         model = OtherDuty
         fields = ['id', 'type', 'location', 'driver']
+        related_serializers = {
+            'driver': 'fleet.serializers.DriverSerializer'
+        }

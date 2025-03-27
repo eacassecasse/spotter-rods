@@ -7,12 +7,13 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from core.models import BaseModel
+from core.views import BaseViewMixin
 from ..models import Driver
 from users.views import IsCarrierManager, IsAdmin
 from ..serializers import DriverSerializer
 
 
-class DriverList(generics.ListCreateAPIView):
+class DriverList(generics.ListCreateAPIView, BaseViewMixin):
     queryset = Driver.objects.all()
     serializer_class = DriverSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
@@ -23,22 +24,9 @@ class DriverList(generics.ListCreateAPIView):
         if self.request.method == 'POST':
             return [IsAuthenticated(), IsCarrierManager() | IsAdmin()]
         return [IsAuthenticated()]
-    
-    def handle_exception(self, exc):
-        if isinstance(exc, PermissionDenied):
-            return Response(
-                {"error": "You do not have the permission to perfom this action"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        elif isinstance(exc, ValidationError):
-            return Response(
-                {"error": "Invalid input", "details": exc.detail},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return super().handle_exception(exc)
 
 
-class DriverDetail(generics.RetrieveUpdateDestroyAPIView):
+class DriverDetail(generics.RetrieveUpdateDestroyAPIView, BaseViewMixin):
     queryset = Driver.objects.all()
     serializer_class = DriverSerializer
     
@@ -46,16 +34,3 @@ class DriverDetail(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
             return [IsAuthenticated(), IsCarrierManager() | IsAdmin()]
         return [IsAuthenticated()]
-    
-    def handle_exception(self, exc):
-        if isinstance(exc, PermissionDenied):
-            return Response(
-                {"error": "You do not have the permission to perfom this action"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        elif isinstance(exc, ValidationError):
-            return Response(
-                {"error": "Invalid input", "details": exc.detail},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return super().handle_exception(exc)

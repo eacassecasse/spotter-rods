@@ -9,10 +9,11 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from core.models import BaseModel
 from ..models import Carrier
 from ..serializers import CarrierSerializer
+from core.views import BaseViewMixin
 from users.views import IsCarrierManager, IsAdmin
 
 
-class CarrierList(generics.ListCreateAPIView):
+class CarrierList(generics.ListCreateAPIView, BaseViewMixin):
     queryset = Carrier.objects.all()
     serializer_class = CarrierSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
@@ -24,21 +25,9 @@ class CarrierList(generics.ListCreateAPIView):
             return [IsAuthenticated(), IsCarrierManager() | IsAdmin()]
         return [IsAuthenticated()]
     
-    def handle_exception(self, exc):
-        if isinstance(exc, PermissionDenied):
-            return Response(
-                {"error": "You do not have the permission to perfom this action"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        elif isinstance(exc, ValidationError):
-            return Response(
-                {"error": "Invalid input", "details": exc.detail},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return super().handle_exception(exc)
 
 
-class CarrierDetail(generics.RetrieveUpdateDestroyAPIView):
+class CarrierDetail(generics.RetrieveUpdateDestroyAPIView, BaseViewMixin):
     queryset = Carrier.objects.all()
     serializer_class = CarrierSerializer
     
@@ -46,16 +35,3 @@ class CarrierDetail(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
             return [IsAuthenticated(), IsCarrierManager() | IsAdmin()]
         return [IsAuthenticated()]
-    
-    def handle_exception(self, exc):
-        if isinstance(exc, PermissionDenied):
-            return Response(
-                {"error": "You do not have the permission to perfom this action"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        elif isinstance(exc, ValidationError):
-            return Response(
-                {"error": "Invalid input", "details": exc.detail},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return super().handle_exception(exc)

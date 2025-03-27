@@ -17,6 +17,11 @@ class DailyLogSerializer(BaseSerializer):
     class Meta:
         model = DailyLog
         fields = ['id', 'date', 'total_miles_driven', 'driver', 'truck', 'shipping']
+        related_serializers = {
+            'driver': 'fleet.serializers.DriverSerializer',
+            'truck': 'fleet.serializers.TruckSerializer',
+            'shipping': 'shipping.serializer.ShippingSerializer'
+        }
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

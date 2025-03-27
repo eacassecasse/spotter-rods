@@ -17,3 +17,6 @@ class DriverSerializer(BaseSerializer):
     class Meta:
         model = Driver
         fields = ['id', 'name', 'license_number', 'total_mileage_driven', 'mileage_week', 'is_cdl_holder', 'carrier', 'user']
+        related_serializers = {
+            'carrier': 'fleet.serializers.CarrierSerializer'
+        }

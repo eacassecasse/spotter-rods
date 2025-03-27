@@ -13,3 +13,6 @@ class SleeperBerthSerializer(BaseDutySerializer):
     class Meta:
         model = SleeperBerth
         fields = ['id', 'is_qualified', 'driver']
+        related_serializers = {
+            'driver': 'fleet.serializers.DriverSerializer'
+        }

@@ -13,3 +13,6 @@ class ShortHaulRemarkSerializer(BaseSerializer):
     class Meta:
         model = ShortHaulRemark
         fields = ['id', 'description', 'short_haul']
+        related_serializers = {
+            'short_haul': 'compliance.serializers.ShortHaulSerializer'
+        }

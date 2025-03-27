@@ -8,13 +8,14 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from core.models import BaseModel
+from core.views import BaseViewMixin
 from compliance.models import DutyStatus
 from ..models import Shipping
 from ..serializers import ShippingSerializer
 from users.views import IsAdmin, IsDispatcher
 
 
-class ShippingList(generics.ListCreateAPIView):
+class ShippingList(generics.ListCreateAPIView, BaseViewMixin):
     queryset = Shipping.objects.all()
     serializer_class = ShippingSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
@@ -31,22 +32,9 @@ class ShippingList(generics.ListCreateAPIView):
         if not DutyStatus.objects.filter(driver=driver, status='ON_DUTY').exists():
             raise ValidationError("Driver must be ON_DUTY to assign shipment.")
         serializer.save()
-    
-    def handle_exception(self, exc):
-        if isinstance(exc, PermissionDenied):
-            return Response(
-                {"error": "You do not have the permission to perfom this action"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        elif isinstance(exc, ValidationError):
-            return Response(
-                {"error": "Invalid input", "details": exc.detail},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return super().handle_exception(exc)
 
 
-class ShippingDetail(generics.RetrieveUpdateDestroyAPIView):
+class ShippingDetail(generics.RetrieveUpdateDestroyAPIView, BaseViewMixin):
     queryset = Shipping.objects.all()
     serializer_class = ShippingSerializer
     
@@ -55,15 +43,3 @@ class ShippingDetail(generics.RetrieveUpdateDestroyAPIView):
             return [IsAuthenticated(), IsDispatcher() | IsAdmin()]
         return [IsAuthenticated()]
     
-    def handle_exception(self, exc):
-        if isinstance(exc, PermissionDenied):
-            return Response(
-                {"error": "You do not have the permission to perfom this action"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        elif isinstance(exc, ValidationError):
-            return Response(
-                {"error": "Invalid input", "details": exc.detail},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return super().handle_exception(exc)
