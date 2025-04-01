@@ -4,6 +4,7 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.core.validators import MinValueValidator
 from rest_framework.exceptions import ValidationError
+from decimal import Decimal
 from core.models import BaseModel
 from .carrier import Carrier
 from users.models import User
@@ -11,11 +12,11 @@ from users.models import User
 
 class Driver(BaseModel):
     """ Driver class """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='driver_profile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='driver_profile', null=False, blank=False)
     name = models.CharField(max_length=105)
     license_number = models.CharField(max_length=21, unique=True, validators=[RegexValidator(r'^[A-Z0-9]+$')])
-    total_mileage_driven = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(0)])
-    mileage_week = models.DecimalField(max_digits=14, decimal_places=2)
+    total_mileage_driven = models.DecimalField(max_digits=14, decimal_places=2, default=0.0, validators=[MinValueValidator(Decimal(0))])
+    mileage_week = models.DecimalField(max_digits=14, decimal_places=2, default=0.0, validators=[MinValueValidator(Decimal(0))])
     is_cdl_holder = models.BooleanField(default=False)
     carrier = models.ForeignKey(Carrier, on_delete=models.CASCADE, related_name='drivers')
     

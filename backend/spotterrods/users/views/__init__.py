@@ -10,3 +10,4 @@ from .user import IsDispatcher
 from .user import IsDriver
 from .user import IsAdmin
 from .user import IsCarrierManager
+from .password import PasswordSetupView

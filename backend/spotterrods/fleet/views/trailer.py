@@ -22,7 +22,7 @@ class TrailerList(generics.ListCreateAPIView, BaseViewMixin):
 
     def get_permissions(self):
         if self.request.method == 'POST':
-            return [IsAuthenticated(), IsCarrierManager() | IsAdmin()]
+            return [IsAuthenticated(), IsCarrierManager() or IsAdmin()]
         return [IsAuthenticated()]
 
 
@@ -32,5 +32,5 @@ class TrailerDetail(generics.RetrieveUpdateDestroyAPIView, BaseViewMixin):
     
     def get_permissions(self):
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
-            return [IsAuthenticated(), IsCarrierManager() | IsAdmin()]
+            return [IsAuthenticated(), IsCarrierManager() or IsAdmin()]
         return [IsAuthenticated()]

@@ -10,3 +10,4 @@ from .views import IsCarrierManager
 from .views import IsDispatcher
 from .views import IsDriver
 from .views import IsOwner
+from .views import PasswordSetupView

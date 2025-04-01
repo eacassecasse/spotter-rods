@@ -24,7 +24,7 @@ class ShippingList(generics.ListCreateAPIView, BaseViewMixin):
 
     def get_permissions(self):
         if self.request.method == 'POST':
-            return [IsAuthenticated(), IsDispatcher() | IsAdmin()]
+            return [IsAuthenticated(), IsDispatcher() or IsAdmin()]
         return [IsAuthenticated()]
     
     def perform_create(self, serializer):
@@ -40,6 +40,6 @@ class ShippingDetail(generics.RetrieveUpdateDestroyAPIView, BaseViewMixin):
     
     def get_permissions(self):
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
-            return [IsAuthenticated(), IsDispatcher() | IsAdmin()]
+            return [IsAuthenticated(), IsDispatcher() or IsAdmin()]
         return [IsAuthenticated()]
     

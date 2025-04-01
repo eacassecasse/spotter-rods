@@ -51,6 +51,10 @@ class DutyStatus(BaseDuty):
     
     def save(self, *args, **kwargs):
         if self.pk:
-            original = DutyStatus.objects.get(pk=self.pk)
-            self.validate_status_transition(self.status)
+            try:
+                original = DutyStatus.objects.get(pk=self.pk)
+                self.validate_status_transition(self.status)
+            except DutyStatus.DoesNotExist:
+                pass
+            
         super().save(*args, *kwargs)

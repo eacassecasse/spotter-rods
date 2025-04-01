@@ -41,10 +41,4 @@ urlpatterns = [
     path('short-hauls/<uuid:id>/', ShortHaulDetail.as_view(),
          name='short-haul-exception-details'),
     path('sleeper-berths/<uuid:id>/', SleeperBerthDetail.as_view(), name='sleeper-berth-details'),
-    # TODO: Review the definitions of these routes
-    path('duty-statuses/<uuid:duty_status_id>/remarks/', DutyRemarkList.as_view(), name='duty-remark-list'),
-    path('duty-statuses/<uuid:duty_status_id>/remarks/<uuid:id>/', DutyRemarkDetail.as_view(), name='duty-remark-details'),
-    path('short-hauls/<uuid:short_hauls_id>/remarks/', ShortHaulRemarkList.as_view(), name='short-haul-remark-list'),
-    path('short-hauls/<uuid:short_hauls_id>/remarks/<uuid:id>/', ShortHaulRemarkDetail.as_view(),
-         name='short-haul-remark-details'),
 ]

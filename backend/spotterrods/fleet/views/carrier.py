@@ -22,7 +22,7 @@ class CarrierList(generics.ListCreateAPIView, BaseViewMixin):
 
     def get_permissions(self):
         if self.request.method == 'POST':
-            return [IsAuthenticated(), IsCarrierManager() | IsAdmin()]
+            return [IsAuthenticated(), IsAdmin() or IsCarrierManager()]
         return [IsAuthenticated()]
     
 
@@ -33,5 +33,5 @@ class CarrierDetail(generics.RetrieveUpdateDestroyAPIView, BaseViewMixin):
     
     def get_permissions(self):
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
-            return [IsAuthenticated(), IsCarrierManager() | IsAdmin()]
+            return [IsAuthenticated(), IsAdmin() or IsCarrierManager()]
         return [IsAuthenticated()]

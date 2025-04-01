@@ -22,5 +22,11 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
 
+  dj:
+    depends_on:
+      - db
+    environment:
+      - DJANGO_SETTINGS=dev
+
 volumes:
   postgres_data:

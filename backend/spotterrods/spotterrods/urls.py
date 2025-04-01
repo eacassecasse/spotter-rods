@@ -18,12 +18,19 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls.conf import include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+
 
 urlpatterns = [
     path('api/v1/carriers/', include('fleet.urls')),
     path('api/v1/auth/', include('users.urls')),
     path('api/v1/drivers/<uuid:driver_id>/', include('logs.urls')),
-    path('api/v1/carriers/<uuid:carrier_id>/', include('shipping.urls')),
+    path('api/v1/carriers/<uuid:carrier_id>/shippings/', include('shipping.urls')),
     path('api/v1/drivers/<uuid:driver_id>/', include('compliance.urls')),
+    path('api/v1/duty-statuses/<uuid:duty_status_id>/', include('compliance.urls_duty_statuses')),
+    path('api/v1/short-hauls/<uuid:short_hauls_id>/', include('compliance.urls_short_hauls')),
+    path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/v1/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path("admin/", admin.site.urls),
 ]

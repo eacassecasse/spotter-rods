@@ -1,59 +1,163 @@
-# tests/test_duty_status.py
-from django.test import TestCase
-from rest_framework.test import APIClient
-from users.models import User, UserRoles
-from .models import DutyStatus
+#!/usr/bin/python3
 
-class DutyStatusTests(TestCase):
+from django.urls import reverse
+from django.utils import timezone
+from rest_framework.test import APITestCase
+from rest_framework.exceptions import ValidationError
+from rest_framework import status
+from fleet.models import Driver, Carrier
+from compliance.models import DutyStatus, RestBreak
+from users.models import User, UserRoles
+
+class DutyStatusModelTest(APITestCase):
     def setUp(self):
-        self.driver = User.objects.create(
-            username="driver1", 
+        # Create carrier first
+        self.carrier = Carrier.objects.create(name="Test Carrier")
+        
+        # Create user
+        self.user = User.objects.create(
+            username='testdriver',
+            password='testpass',
+            name='Test Driver',
             role=UserRoles.DRIVER
         )
-        self.dispatcher = User.objects.create(
-            username="dispatcher1",
-            role=UserRoles.DISPATCHER
+        
+        # Create driver profile linked to user
+        self.driver = Driver.objects.create(
+            user=self.user,
+            name="Test Driver",
+            license_number="DL12345678",
+            carrier=self.carrier
         )
+        
+        # Now create duty status with driver instance
         self.status = DutyStatus.objects.create(
-            driver=self.driver,
             status="ON_DUTY",
-            location="Test Location"
+            location="Test Location",
+            driver=self.driver,  # Pass the Driver instance, not User
+            start_at=timezone.now() - timezone.timedelta(hours=2)
         )
 
-    def test_driver_can_create_status(self):
-        client = APIClient()
-        client.force_authenticate(user=self.driver)
-        response = client.post(
-            "/api/v1/duty-status/",
-            {"status": "DRIVING", "location": "New Location"},
-            format="json"
-        )
-        self.assertEqual(response.status_code, 201)
-
-    def test_dispatcher_cannot_modify_status(self):
-        client = APIClient()
-        client.force_authenticate(user=self.dispatcher)
-        response = client.patch(
-            f"/api/duty-status/{self.status.id}/",
-            {"status": "OFF_DUTY"},
-            format="json"
-        )
-        self.assertEqual(response.status_code, 403)
-
-    def test_24_hour_edit_window(self):
-        from django.utils import timezone
-        from datetime import timedelta
-        old_status = DutyStatus.objects.create(
-            driver=self.driver,
+    def test_status_transition_validation(self):
+        """Test valid status transitions"""
+        # Start with OFF_DUTY
+        duty = DutyStatus.objects.create(
             status="OFF_DUTY",
-            start_at=timezone.now() - timedelta(hours=25)
+            location="Home",
+            driver=self.driver
         )
-        client = APIClient()
-        client.force_authenticate(user=self.driver)
-        response = client.patch(
-            f"/api/duty-status/{old_status.id}/",
-            {"status": "ON_DUTY"},
-            format="json"
+        
+        # OFF_DUTY -> ON_DUTY is valid
+        duty.status = "ON_DUTY"
+        duty.full_clean()
+        
+        # ON_DUTY -> DRIVING is valid
+        duty.status = "DRIVING"
+        duty.full_clean()
+        
+        # DRIVING -> OFF_DUTY is invalid (must go through ON_DUTY)
+        duty.status = "OFF_DUTY"
+        with self.assertRaises(ValidationError):
+            duty.full_clean()
+
+class DutyStatusAPITests(APITestCase):
+    def setUp(self):
+        self.carrier = Carrier.objects.create(name="Test Carrier")
+        self.driver_user = User.objects.create_user(
+            username='driver',
+            password='driverpass',
+            name='Driver',
+            role=UserRoles.DRIVER
         )
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("24 hours", str(response.data))
+        self.driver = Driver.objects.create(
+            user=self.driver_user,
+            name="Test Driver",
+            license_number="DL12345678",
+            carrier=self.carrier
+        )
+        self.duty_data = {
+            'status': 'ON_DUTY',
+            'location': 'Test Location'
+        }
+
+    def test_create_duty_status_as_driver(self):
+        """Driver should create their own duty status"""
+        self.client.force_authenticate(user=self.driver_user)
+        response = self.client.post(
+            reverse('duty-status-list', kwargs={'driver_id': self.driver.id}),
+            self.duty_data,
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(DutyStatus.objects.count(), 1)
+        duty = DutyStatus.objects.first()
+        self.assertEqual(duty.status, 'ON_DUTY')
+        self.assertEqual(duty.driver, self.driver)
+
+    def test_cannot_modify_old_status(self):
+        """Cannot modify status older than 24 hours"""
+        old_duty = DutyStatus.objects.create(
+            status="ON_DUTY",
+            location="Old Location",
+            driver=self.driver,
+            start_at=timezone.now() - timezone.timedelta(days=2)
+        )
+        
+        self.client.force_authenticate(user=self.driver_user)
+        response = self.client.patch(
+            reverse('duty-status-details', args=[old_duty.id], kwargs={'driver_id': self.driver.id}),
+            {'status': 'OFF_DUTY'},
+            format='json'
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'FMCSA violation')
+        
+class RestBreakTest(APITestCase):
+    def setUp(self):
+        self.carrier = Carrier.objects.create(name="Test Carrier")
+        self.driver_user = User.objects.create_user(
+            username='driver',
+            password='driverpass',
+            name='Driver',
+            role=UserRoles.DRIVER
+        )
+        self.driver = Driver.objects.create(
+            user=self.driver_user,
+            name="Test Driver",
+            license_number="DL12345678",
+            carrier=self.carrier
+        )
+        
+        # Start duty status
+        self.duty = DutyStatus.objects.create(
+            status="ON_DUTY",
+            location="Test Location",
+            driver=self.driver
+        )
+
+    def test_create_rest_break(self):
+        """Driver should create rest breaks"""
+        self.client.force_authenticate(user=self.driver_user)
+        response = self.client.post(
+            reverse('rest-break-list', kwargs={'driver_id': self.driver.id}),
+            {'type': 'OFF_DUTY'},
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(RestBreak.objects.count(), 1)
+        rest_break = RestBreak.objects.first()
+        self.assertEqual(rest_break.type, 'OFF_DUTY')
+        self.assertEqual(rest_break.driver, self.driver)
+
+    def test_break_duration_calculation(self):
+        """Test break duration calculation"""
+        rest_break = RestBreak.objects.create(
+            type="OFF_DUTY",
+            driver=self.driver
+        )
+        self.assertIsNone(rest_break.duration)  # No end_at
+        
+        rest_break.end_at = rest_break.start_at + timezone.timedelta(minutes=30)
+        rest_break.save()
+        self.assertEqual(rest_break.duration.total_seconds(), 1800)

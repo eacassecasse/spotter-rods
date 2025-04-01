@@ -12,3 +12,4 @@ class Carrier(BaseModel):
 
     class Meta:
         db_table = 'carriers'
+        ordering = ['name']

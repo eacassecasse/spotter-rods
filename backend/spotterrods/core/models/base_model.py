@@ -30,7 +30,7 @@ class BaseModel(models.Model):
             'id': str(self.id),
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
-            'model_type': self.__class__.__name__
+            '__class__': self.__class__.__name__
         }
         
         for field in self._meta.fields:
