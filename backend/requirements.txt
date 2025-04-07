@@ -1,10 +1,17 @@
 asgiref==3.8.1
-attrs==25.3.0
+Brotli==1.1.0
+dj-database-url==2.3.0
 Django==5.1.7
 django-filter==25.1
+djangorestframework==3.15.2
+psycopg2-binary==2.9.10
+python-dotenv==1.1.0
+sqlparse==0.5.3
+typing_extensions==4.13.1
+whitenoise==6.9.0
+attrs==25.3.0
 django-redis==5.4.0
 django-seed==0.3.1
-djangorestframework==3.15.2
 djangorestframework_simplejwt==5.5.0
 drf-spectacular==0.28.0
 Faker==37.1.0
@@ -17,7 +24,6 @@ PyYAML==6.0.2
 redis==5.2.1
 referencing==0.36.2
 rpds-py==0.24.0
-sqlparse==0.5.3
 toposort==1.10
 typing_extensions==4.13.0
 tzdata==2025.2
