@@ -51,7 +51,6 @@ class IsCarrierManager(BasePermission):
         return request.user.role == UserRoles.CARRIER_MANAGER
 
 class UserCreate(APIView):
-    serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -69,7 +68,6 @@ class UserCreate(APIView):
 
 
 class UserLogin(APIView):
-    serializer_class = UserLoginSerializer
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -81,7 +79,6 @@ class UserLogin(APIView):
         
         
         user = serializer.validated_data['user']
-        print(user)
 
         if not user:
             return Response(
@@ -105,10 +102,10 @@ class UserLogin(APIView):
         return response
 
 
-@extend_schema(
-    request=TokenRefreshSerializer,
-    responses={200: TokenRefreshSerializer}
-)
+# @extend_schema(
+#     request=TokenRefreshSerializer,
+#     responses={200: TokenRefreshSerializer}
+# )
 class TokenRefresh(APIView):
     def post(self, request):
         refresh_token = request.COOKIES.get('refresh_token')
@@ -151,7 +148,7 @@ class TokenRefresh(APIView):
             
             
 class Logout(APIView):
-    def post(self, request):
+    def delete(self, request):
         refresh_token = request.COOKIES.get('refresh_token')
         
         if not refresh_token:
@@ -168,8 +165,7 @@ class Logout(APIView):
             cache.delete(f"refresh_token_{user_id}")
             
             response = Response(
-                {"message": "Logged out successfully"},
-                status=status.HTTP_200_OK,
+                status=status.HTTP_204_NO_CONTENT,
             )
             response.delete_cookie("refresh_token")
             
@@ -182,7 +178,6 @@ class Logout(APIView):
 
 
 class UserDetail(APIView):
-    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated, IsOwner]
     
     def get_object(self, pk):

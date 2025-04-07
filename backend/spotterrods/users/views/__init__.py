@@ -3,6 +3,7 @@
 from .user import UserCreate
 from .user import UserDetail
 from .user import UserLogin
+from .user import Logout
 from .user import TokenRefresh
 from .user import IsTechnician
 from .user import IsOwner
