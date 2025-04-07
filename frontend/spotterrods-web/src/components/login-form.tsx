@@ -17,7 +17,6 @@ export function LoginForm({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(`Received Payload: USERNAME => ${username}  PASSWORD => ${password}`)
     await login(username, password);
   };
 

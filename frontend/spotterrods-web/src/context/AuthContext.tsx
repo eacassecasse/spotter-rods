@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           try {
             console.log("Token expired, refreshing");
             const { data } = await api.post(
-              "/auth/refresh",
+              "/auth/refresh/",
               {refreshToken},
               {
                 withCredentials: true,
@@ -170,10 +170,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setLoading(true);
       const { data }: { data: LoginResponseProps } = await api.post(
-        "/auth/login",
+        "/auth/login/",
         { username, password },
         { withCredentials: true }
       );
+      
+      console.log(data);
+
       const { accessToken, refreshToken } = data;
       setAccessToken(accessToken);
       setRefreshToken(refreshToken);
