@@ -12,6 +12,8 @@ SECURE_HSTS_SECONDS = int(ENV.get('DRF_SECURE_HSTS_SECONDS'))
 SECURE_HSTS_PRELOAD = bool(ENV.get('DRF_SECURE_HSTS_PRELOAD'))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = bool(ENV.get('DRF_SECURE_HSTS_INCLUDE_SUBDOMAINS'))
 SECURE_SSL_REDIRECT = bool(ENV.get('DRF_SECURE_SSL_REDIRECT'))
+CORS_ALLOWED_ORIGINS = json.loads(ENV.get('DRF_CORS_ALLOWED_ORIGINS', []))
+CORS_ALLOW_CREDENTIALS = bool(ENV.get('DRF_CORS_ALLOW_CREDENTIALS'))
 
 # Application definition
 
@@ -24,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_filters',
     'django_seed',
+    'corsheaders',
     'rest_framework',
     'drf_spectacular',
     'rest_framework.authtoken',
@@ -37,6 +40,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
