@@ -1,35 +1,30 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
+import { useAuth } from "@/context/AuthContext";
+import { LoginForm } from "./components/login-form";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { user } = useAuth();
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      {user ? (
+        <main className="h-screen w-screen grid grid-cols-3 gap-8 m-auto p-8">
+          <div className="col-span-2 border border-green-700 rounded-md">1</div>
+          <div className="col-span-1 border border-green-700 rounded-md">2</div>
+          <div className="col-span-1 border border-green-700 rounded-md">3</div>
+          <div className="col-span-1 border border-green-700 rounded-md">4</div>
+          <div className="col-span-1 border border-green-700 rounded-md">5</div>
+        </main>
+      ) : (
+        <main className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
+          <div className="w-full max-w-sm md:max-w-3xl">
+            <LoginForm/>
+          </div>
+        </main>
+      )}
     </>
-  )
+  );
 }
 
-export default App
+export default App;
