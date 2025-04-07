@@ -20,7 +20,7 @@ class DailyLogSerializer(BaseSerializer):
         related_serializers = {
             'driver': 'fleet.serializers.DriverSerializer',
             'truck': 'fleet.serializers.TruckSerializer',
-            'shipping': 'shipping.serializer.ShippingSerializer'
+            'shipping': 'shipping.serializers.ShippingSerializer'
         }
 
     def to_representation(self, instance):

@@ -1,12 +1,14 @@
 #!/usr/bin/python3
 """ User View Module for SpotterRODS project """
 from django.core.exceptions import PermissionDenied
+from drf_spectacular.utils import extend_schema
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from django.core.cache import cache
 from django.http import Http404
 
@@ -49,6 +51,7 @@ class IsCarrierManager(BasePermission):
         return request.user.role == UserRoles.CARRIER_MANAGER
 
 class UserCreate(APIView):
+    serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -66,6 +69,7 @@ class UserCreate(APIView):
 
 
 class UserLogin(APIView):
+    serializer_class = UserLoginSerializer
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -101,6 +105,10 @@ class UserLogin(APIView):
         return response
 
 
+@extend_schema(
+    request=TokenRefreshSerializer,
+    responses={200: TokenRefreshSerializer}
+)
 class TokenRefresh(APIView):
     def post(self, request):
         refresh_token = request.COOKIES.get('refresh_token')
@@ -174,6 +182,7 @@ class Logout(APIView):
 
 
 class UserDetail(APIView):
+    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated, IsOwner]
     
     def get_object(self, pk):

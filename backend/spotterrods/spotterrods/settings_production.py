@@ -1,15 +1,17 @@
 import json
 import dj_database_url
 from datetime import timedelta
-from . import BASE_DIR, ENV
+from . import ENV
 
-SECRET_KEY = ENV.get('DRF_SECRET_KEY', 'django-insecure-xfaj80-ckbup!cw-=s-cu*zt@7tip%t31od0v=3=yv#=#7+*p@')
-
-DEBUG = ENV.get('DRF_DEBUG', '') != 'False'
-
+SECRET_KEY = ENV.get('DRF_SECRET_KEY')
+DEBUG = bool(ENV.get('DRF_DEBUG')) == 'False'
 ALLOWED_HOSTS = json.loads(ENV.get('DRF_ALLOWED_HOSTS', []))
 SESSION_COOKIE_SECURE = bool(ENV.get('DRF_SESSION_COOKIE_SECURE'))
 CSRF_COOKIE_SECURE = bool(ENV.get('DRF_CSRF_COOKIE_SECURE'))
+SECURE_HSTS_SECONDS = int(ENV.get('DRF_SECURE_HSTS_SECONDS'))
+SECURE_HSTS_PRELOAD = bool(ENV.get('DRF_SECURE_HSTS_PRELOAD'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = bool(ENV.get('DRF_SECURE_HSTS_INCLUDE_SUBDOMAINS'))
+SECURE_SSL_REDIRECT = bool(ENV.get('DRF_SECURE_SSL_REDIRECT'))
 
 # Application definition
 
@@ -21,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_filters',
+    'django_seed',
     'rest_framework',
     'drf_spectacular',
     'rest_framework.authtoken',

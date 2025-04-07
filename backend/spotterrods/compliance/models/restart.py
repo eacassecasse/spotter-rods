@@ -7,7 +7,7 @@ from fleet.models import Driver
 
 class Restart(BaseDuty):
     """ Restart class """
-    is_complete = models.BooleanField(default=False)
+    is_completed = models.BooleanField(default=False)
     driver = models.ForeignKey(Driver, on_delete=models.CASCADE, related_name='restarts')
 
     class Meta:
