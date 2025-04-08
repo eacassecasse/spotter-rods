@@ -34,7 +34,8 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserProps | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
   const isRefreshing = useRef(false);
   const failedQueue = useRef<
     Array<{
@@ -66,8 +67,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (username: string, password: string) => {
+    if (!initialized) return;
+
+    setLoading(true);
     try {
-      setLoading(true);
       const { data }: { data: LoginResponseProps } = await api.post(
         "/auth/login/",
         { username, password },
@@ -77,13 +80,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setAccessToken(data.accessToken);
       api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
 
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       await fetchUserProfile();
       console.log("Cookies => ", document.cookie);
       toast("Logged in successfully");
     } catch (error) {
-      setLoading(false);
       const message = axios.isAxiosError(error)
         ? error.response?.data?.message || error.message
         : "Login failed";
@@ -176,24 +178,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      setLoading(true);
-
       try {
-        const { data } = await api.post(
-          "/auth/refresh",
-          {},
-          {
-            withCredentials: true,
-          }
-        );
+        if (document.cookie.includes("refresh_token")) {
+          const { data } = await api.post(
+            "/auth/refresh",
+            {},
+            {
+              withCredentials: true,
+            }
+          );
 
-        setAccessToken(data.accessToken);
-        api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
-        await fetchUserProfile();
+          setAccessToken(data.accessToken);
+          api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
+          await fetchUserProfile();
+        }
       } catch (error) {
         logout();
       } finally {
         setLoading(false);
+        setInitialized(true);
       }
     };
 
