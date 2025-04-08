@@ -15,15 +15,18 @@ from django.http import Http404
 from core.models import BaseModel
 from ..models import User, UserRoles
 from ..serializers import UserSerializer, UserLoginSerializer
+from ...spotterrods import ENV
 
 
-def _set_cookie(response, refresh_token):
+def _set_cookie(response, key, value):
     response.set_cookie(
-            key="refresh_token",
-            value=refresh_token,
+            key=key,
+            value=value,
             httponly=True,
             secure=True,
-            samesite="Strict"
+            samesite=ENV.get('DRF_AUTH_COOKIE_SAMESITE'),
+            domain=ENV.get('DRF_AUTH_COOKIE_DOMAIN'),
+            max_age=int(ENV.get('DRF_AUTH_COOKIE_MAXAGE'))
         )
     
 class IsOwner(BasePermission):
@@ -97,7 +100,8 @@ class UserLogin(APIView):
             status=status.HTTP_200_OK
             )
 
-        _set_cookie(response=response, refresh_token=refresh_token)
+        _set_cookie(response=response, key='access_token', value=access_token)
+        _set_cookie(response=response, key='refresh_token',value=refresh_token)
 
         return response
 
@@ -136,7 +140,8 @@ class TokenRefresh(APIView):
                 status=status.HTTP_200_OK
             )
 
-            _set_cookie(response=response, refresh_token=new_access_token)
+            _set_cookie(response=response, key='access_token', value=new_access_token)
+            _set_cookie(response=response, key='refresh_token', value=new_refresh_token)
             
             return response
     

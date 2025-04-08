@@ -8,12 +8,20 @@ DEBUG = bool(ENV.get('DRF_DEBUG')) == 'False'
 ALLOWED_HOSTS = json.loads(ENV.get('DRF_ALLOWED_HOSTS', []))
 SESSION_COOKIE_SECURE = bool(ENV.get('DRF_SESSION_COOKIE_SECURE'))
 CSRF_COOKIE_SECURE = bool(ENV.get('DRF_CSRF_COOKIE_SECURE'))
+SESSION_COOKIE_DOMAIN = ENV.get('DRF_SESSION_COOKIE_DOMAIN')
+CSRF_COOKIE_DOMAIN = ENV.get('DRF_CSRF_COOKIE_DOMAIN')
+SESSION_COOKIE_SAMESITE = ENV.get('DRF_SESSION_COOKIE_SAMESITE')
+CSRF_COOKIE_SAMESITE = ENV.get('DRF_CSRF_COOKIE_SAMESITE')
+SESSION_COOKIE_HTTPONLY = bool(ENV.get('DRF_SESSION_COOKIE_HTTPONLY'))
+CSRF_COOKIE_HTTPONLY = bool(ENV.get('DRF_CSRF_COOKIE_HTTPONLY'))
 SECURE_HSTS_SECONDS = int(ENV.get('DRF_SECURE_HSTS_SECONDS'))
 SECURE_HSTS_PRELOAD = bool(ENV.get('DRF_SECURE_HSTS_PRELOAD'))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = bool(ENV.get('DRF_SECURE_HSTS_INCLUDE_SUBDOMAINS'))
 SECURE_SSL_REDIRECT = bool(ENV.get('DRF_SECURE_SSL_REDIRECT'))
 CORS_ALLOWED_ORIGINS = json.loads(ENV.get('DRF_CORS_ALLOWED_ORIGINS', []))
+CORS_EXPOSE_HEADERS = json.loads(ENV.get('DRF_CORS_EXPOSE_HEADERS', []))
 CORS_ALLOW_CREDENTIALS = bool(ENV.get('DRF_CORS_ALLOW_CREDENTIALS'))
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # Application definition
 
@@ -42,13 +50,13 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'spotterrods.urls'
@@ -127,10 +135,16 @@ SPECTACULAR_SETTINGS = {
 }
 
 JWT_CONFIG = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=int(ENV.get('DRF_ACCESS_TOKEN_LIFETIME'))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(ENV.get('DRF_REFRESH_TOKEN_LIFETIME'))),
+    'ROTATE_REFRESH_TOKENS': bool(ENV.get('DRF_ROTATE_REFRESH_TOKENS')),
+    'BLACKLIST_AFTER_ROTATION': bool(ENV.get('DRF_BLACKLIST_AFTER_ROTATION')),
+    'AUTH_HEADER_TYPES': (ENV.get('DRF_AUTH_HEADER_TYPES')),
+    'AUTH_COOKIE': ENV.get('DRF_AUTH_COOKIE'),
+    'AUTH_COOKIE_DOMAIN': ENV.get('DRF_AUTH_COOKIE_DOMAIN'),
+    'AUTH_COOKIE_SECURE': bool(ENV.get('DRF_AUTH_COOKIE_SECURE')),
+    'AUTH_COOKIE_HTTP_ONLY': bool(ENV.get('DRF_AUTH_COOKIE_HTTP_ONLY')),
+    'AUTH_COOKIE_SAMESITE': ENV.get('DRF_AUTH_COOKIE_SAMESITE')
 }
 
 CACHES = {
@@ -143,7 +157,12 @@ CACHES = {
             'SOCKET_CONNECT_TIMEOUT': 5,
             'SOCKET_TIMEOUT': 5,
             'IGNORE_EXCEPTIONS': True,
-        }
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 20,
+                'retry_on_timeout': True,
+            }
+        },
+        'KEY_PREFIX': 'spotterrods'
     }
 }
 
