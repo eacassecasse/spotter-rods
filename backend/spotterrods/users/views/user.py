@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 """ User View Module for SpotterRODS project """
-import os
-from pathlib import Path
-from dotenv import load_dotenv
+
 from django.core.exceptions import PermissionDenied
 from drf_spectacular.utils import extend_schema
 from rest_framework.views import APIView
@@ -18,14 +16,8 @@ from django.http import Http404
 from core.models import BaseModel
 from ..models import User, UserRoles
 from ..serializers import UserSerializer, UserLoginSerializer
+from spotterrods import ENV
 
-
-
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-environ_path = load_dotenv(os.path.join(BASE_DIR, '.env'))
-load_dotenv(environ_path)
-
-ENV = os.environ
 
 def _set_cookie(response, key, value):
     response.set_cookie(
