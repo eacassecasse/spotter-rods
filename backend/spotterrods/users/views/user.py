@@ -165,7 +165,7 @@ class Logout(APIView):
             cache.delete(f"refresh_token_{user_id}")
             
             response = Response(
-                "message": 'Logged out sucessfully',
+                {"message": 'Logged out sucessfully'},
                 status=status.HTTP_200_OK,
             )
             response.delete_cookie("refresh_token")
