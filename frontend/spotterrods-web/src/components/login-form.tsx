@@ -55,8 +55,12 @@ export function LoginForm({
                 </div>
                 <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
-              <Button type="submit" className="w-full">
-                {loading ? "Signing in...": "Login"}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    Logging in...
+                  </div>
+                ): "Login"}
               </Button>
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                 <span className="bg-card text-muted-foreground relative z-10 px-2">
