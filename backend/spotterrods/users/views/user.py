@@ -148,7 +148,7 @@ class TokenRefresh(APIView):
             
             
 class Logout(APIView):
-    def delete(self, request):
+    def post(self, request):
         refresh_token = request.COOKIES.get('refresh_token')
         
         if not refresh_token:
@@ -165,7 +165,8 @@ class Logout(APIView):
             cache.delete(f"refresh_token_{user_id}")
             
             response = Response(
-                status=status.HTTP_204_NO_CONTENT,
+                "message": 'Logged out sucessfully',
+                status=status.HTTP_200_OK,
             )
             response.delete_cookie("refresh_token")
             
