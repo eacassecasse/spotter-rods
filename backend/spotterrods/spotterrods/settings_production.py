@@ -139,12 +139,12 @@ JWT_CONFIG = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=int(ENV.get('DRF_REFRESH_TOKEN_LIFETIME'))),
     'ROTATE_REFRESH_TOKENS': bool(ENV.get('DRF_ROTATE_REFRESH_TOKENS')),
     'BLACKLIST_AFTER_ROTATION': bool(ENV.get('DRF_BLACKLIST_AFTER_ROTATION')),
-    'AUTH_HEADER_TYPES': (ENV.get('DRF_AUTH_HEADER_TYPES')),
-    'AUTH_COOKIE': ENV.get('DRF_AUTH_COOKIE'),
-    'AUTH_COOKIE_DOMAIN': ENV.get('DRF_AUTH_COOKIE_DOMAIN'),
-    'AUTH_COOKIE_SECURE': bool(ENV.get('DRF_AUTH_COOKIE_SECURE')),
-    'AUTH_COOKIE_HTTP_ONLY': bool(ENV.get('DRF_AUTH_COOKIE_HTTP_ONLY')),
-    'AUTH_COOKIE_SAMESITE': ENV.get('DRF_AUTH_COOKIE_SAMESITE')
+    # 'AUTH_HEADER_TYPES': (ENV.get('DRF_AUTH_HEADER_TYPES')),
+    # 'AUTH_COOKIE': ENV.get('DRF_AUTH_COOKIE'),
+    # 'AUTH_COOKIE_DOMAIN': ENV.get('DRF_AUTH_COOKIE_DOMAIN'),
+    # 'AUTH_COOKIE_SECURE': bool(ENV.get('DRF_AUTH_COOKIE_SECURE')),
+    # 'AUTH_COOKIE_HTTP_ONLY': bool(ENV.get('DRF_AUTH_COOKIE_HTTP_ONLY')),
+    # 'AUTH_COOKIE_SAMESITE': ENV.get('DRF_AUTH_COOKIE_SAMESITE')
 }
 
 CACHES = {
@@ -161,8 +161,7 @@ CACHES = {
                 'max_connections': 20,
                 'retry_on_timeout': True,
             }
-        },
-        'KEY_PREFIX': 'spotterrods'
+        }
     }
 }
 
