@@ -25,7 +25,7 @@ def _set_cookie(response, key, value):
             value=value,
             httponly=True,
             secure=True,
-            # samesite=ENV.get('DRF_AUTH_COOKIE_SAMESITE'),
+            samesite=ENV.get('DRF_AUTH_COOKIE_SAMESITE'),
             # domain=ENV.get('DRF_AUTH_COOKIE_DOMAIN'),
             # max_age=int(ENV.get('DRF_AUTH_COOKIE_MAXAGE'))
         )
