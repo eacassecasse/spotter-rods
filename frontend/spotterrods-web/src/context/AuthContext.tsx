@@ -11,8 +11,8 @@ import {
 } from "react";
 
 interface LoginResponseProps {
-  accessToken: string;
-  refreshToken: string;
+  access: string;
+  refresh: string;
 }
 
 interface UserProps {
@@ -77,8 +77,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         { withCredentials: true }
       );
 
-      setAccessToken(data.accessToken);
-      api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
+      setAccessToken(data.access);
+      api.defaults.headers.common.Authorization = `Bearer ${data.access}`;
 
       await new Promise((resolve) => setTimeout(resolve, 50));
 
@@ -135,14 +135,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         );
 
-        const { accessToken: newAccessToken } = data;
+        const { accessToken: access } = data;
 
-        setAccessToken(newAccessToken);
-        api.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
-        processQueue(null, newAccessToken);
+        setAccessToken(access);
+        api.defaults.headers.common.Authorization = `Bearer ${access}`;
+        processQueue(null, access);
 
         originalRequest.headers = originalRequest.headers || {};
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${access}`;
 
         return api(originalRequest);
       } catch (refreshError) {
@@ -181,15 +181,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         if (document.cookie.includes("refresh_token")) {
           const { data } = await api.post(
-            "/auth/refresh",
+            "/auth/refresh/",
             {},
             {
               withCredentials: true,
             }
           );
 
-          setAccessToken(data.accessToken);
-          api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
+          setAccessToken(data.access);
+          api.defaults.headers.common.Authorization = `Bearer ${data.access}`;
           await fetchUserProfile();
         }
       } catch (error) {
