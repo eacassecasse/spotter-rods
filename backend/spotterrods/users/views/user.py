@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 from django.core.cache import cache
 from django.http import Http404
 
@@ -20,16 +21,16 @@ from ..serializers import UserSerializer, UserLoginSerializer
 from spotterrods import ENV
 
 
-def _set_cookie(response, key, value):
+def _set_cookie(response, key, value, path, max_age):
     response.set_cookie(
             key=key,
             value=value,
             httponly=True,
             secure=True,
-            samesite=None,
-            domain=None,
-            path='/',
-            # max_age=int(ENV.get('DRF_AUTH_COOKIE_MAXAGE'))
+            samesite=ENV.get('AUTH_COOKIE_SAMESITE', None),
+            domain=ENV.get('AUTH_COOKIE_DOMAIN', None),
+            path=path,
+            max_age=max_age
         )
     
 class IsOwner(BasePermission):
@@ -73,7 +74,7 @@ class UserCreate(APIView):
         )
 
 
-class UserLogin(APIView):
+class UserLogin(TokenObtainPairView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -83,7 +84,6 @@ class UserLogin(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         
-        
         user = serializer.validated_data['user']
 
         if not user:
@@ -91,20 +91,17 @@ class UserLogin(APIView):
                 {"message": "Invalid username or password"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
+            
+        response = super().post(request, *args, **kwargs)
         
-        refresh = RefreshToken.for_user(user)
-        access_token = str(refresh.access_token)
-        refresh_token = str(refresh)
-
-        cache.set(f"refresh_token_{user.id}", refresh_token, timeout=7 * 24 * 3600)
-
-        response = Response(
-            { "access_token": access_token, "refresh_token": refresh_token },
-            status=status.HTTP_200_OK
-            )
-
-        _set_cookie(response=response, key='access_token', value=access_token)
-        _set_cookie(response=response, key='refresh_token', value=refresh_token)
+        if response.status_code == 200:
+            access_token = response.data['access']
+            refresh_token = response.data['refresh']
+            
+            cache.set(f"refresh_token_{user.id}", refresh_token, timeout=7*24*3600)
+            
+            _set_cookie(response, 'access_token', access_token, '/' ,15 * 60)
+            _set_cookie(response, 'refresh_token', refresh_token, '/', 7 * 24 * 3600)
 
         return response
 
@@ -113,8 +110,8 @@ class UserLogin(APIView):
 #     request=TokenRefreshSerializer,
 #     responses={200: TokenRefreshSerializer}
 # )
-class TokenRefresh(APIView):
-    def post(self, request):
+class TokenRefresh(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get('refresh_token')
         if not refresh_token:
             return Response(
@@ -129,22 +126,22 @@ class TokenRefresh(APIView):
             
             if not cached_refresh_token or cached_refresh_token != refresh_token:
                 return Response(
-                    {"error": ""},
+                    {"error": "Invalid or expired refresh token"},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
                 
-            new_access_token = str(refresh.access_token)
-            new_refresh_token = str(refresh)
+            request.data['refresh'] = refresh_token
+            response = super().post(request, *args, **kwargs)
+            
+            if response.status_code == 200:
+                new_access = response.data['access']
+                new_refresh = response.data.get('refresh', refresh_token)
 
-            cache.set(f"refresh_token_{user_id}", new_refresh_token, timeout=7 * 24 * 3600)
+                if new_refresh:
+                    cache.set(f"refresh_token_{user_id}", new_refresh, timeout=7 * 24 * 3600)
+                    _set_cookie(response=response, key='refresh_token', value=new_refresh, path='/', max_age=7 *24 * 3600)
 
-            response = Response(
-                { "access_token": new_access_token, "refresh_token": new_refresh_token },
-                status=status.HTTP_200_OK
-            )
-
-            _set_cookie(response=response, key='access_token', value=new_access_token)
-            _set_cookie(response=response, key='refresh_token', value=new_refresh_token)
+                _set_cookie(response=response, key='access_token', value=new_access, path='/', max_age=15 *60)
             
             return response
     
