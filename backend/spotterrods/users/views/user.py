@@ -25,7 +25,7 @@ def _set_cookie(response, key, value):
             value=value,
             httponly=True,
             secure=True,
-            # samesite=ENV.get('DRF_AUTH_COOKIE_SAMESITE', None),
+            samesite=None,
             # domain=ENV.get('DRF_AUTH_COOKIE_DOMAIN', None),
             # max_age=int(ENV.get('DRF_AUTH_COOKIE_MAXAGE'))
         )
@@ -102,7 +102,7 @@ class UserLogin(APIView):
             )
 
         _set_cookie(response=response, key='access_token', value=access_token)
-        _set_cookie(response=response, key='refresh_token',value=refresh_token)
+        _set_cookie(response=response, key='refresh_token', value=refresh_token)
 
         return response
 
