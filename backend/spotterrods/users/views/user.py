@@ -78,30 +78,17 @@ class UserLogin(TokenObtainPairView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        serializer = UserLoginSerializer(data=request.data)
-        
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        
-        user = serializer.validated_data['user']
-
-        if not user:
-            return Response(
-                {"message": "Invalid username or password"},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-            
         response = super().post(request, *args, **kwargs)
         
         if response.status_code == 200:
             access_token = response.data['access']
             refresh_token = response.data['refresh']
+            user = RefreshToken(response.data['refresh'])['user']
             
             cache.set(f"refresh_token_{user.id}", refresh_token, timeout=7*24*3600)
             
-            _set_cookie(response, 'access_token', access_token, '/' ,15 * 60)
-            _set_cookie(response, 'refresh_token', refresh_token, '/', 7 * 24 * 3600)
+            _set_cookie(response=response, key='access_token', value=access_token, path='/' ,max_age=15 * 60)
+            _set_cookie(response=response, key='refresh_token', value=refresh_token, path='/api/v1/auth/refresh/', max_age=7 * 24 * 3600)
 
         return response
 
@@ -126,7 +113,7 @@ class TokenRefresh(TokenRefreshView):
             
             if not cached_refresh_token or cached_refresh_token != refresh_token:
                 return Response(
-                    {"error": "Invalid or expired refresh token"},
+                    {"error": "Authentication failed"},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
                 
@@ -139,7 +126,7 @@ class TokenRefresh(TokenRefreshView):
 
                 if new_refresh:
                     cache.set(f"refresh_token_{user_id}", new_refresh, timeout=7 * 24 * 3600)
-                    _set_cookie(response=response, key='refresh_token', value=new_refresh, path='/', max_age=7 *24 * 3600)
+                    _set_cookie(response=response, key='refresh_token', value=new_refresh, path='/api/v1/auth/refresh/', max_age=7 *24 * 3600)
 
                 _set_cookie(response=response, key='access_token', value=new_access, path='/', max_age=15 *60)
             
@@ -147,7 +134,7 @@ class TokenRefresh(TokenRefreshView):
     
         except Exception as e:
             return Response(
-                {"error": "Invalid refresh token"},
+                {"error": "Authentication failed"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
             
@@ -158,7 +145,7 @@ class Logout(APIView):
         
         if not refresh_token:
             return Response(
-                {"error": "Refresh token missing"},
+                {"error": "Authentication failed"},
                 status.HTTP_401_UNAUTHORIZED
                 )
             
@@ -169,18 +156,16 @@ class Logout(APIView):
             user_id = request.user.id
             cache.delete(f"refresh_token_{user_id}")
             
-            response = Response(
+        except TokenError as e:
+            pass
+        
+        response = Response(
                 {"message": 'Logged out sucessfully'},
                 status=status.HTTP_200_OK,
             )
-            response.delete_cookie("refresh_token")
-            
-            return response
-        except TokenError as e:
-            return Response(
-                {"error": "Invalid refresh token"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
+        return response
 
 
 class UserDetail(APIView):
