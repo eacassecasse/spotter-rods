@@ -32,10 +32,15 @@ interface AuthContextProps {
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<UserProps | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
+  const [authState, setAuthState] = useState<{
+    user: UserProps | null;
+    loading: boolean;
+    initialized: boolean;
+  }>({
+    user: null,
+    loading: true,
+    initialized: false,
+  });
   const isRefreshing = useRef(false);
   const failedQueue = useRef<
     Array<{
@@ -58,50 +63,53 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchUserProfile = useCallback(async () => {
     try {
       const { data } = await api.get("/auth/profile");
-      setUser(data);
+      return data;
     } catch (error) {
-      logout();
-    } finally {
-      setLoading(false);
+      return null;
     }
   }, []);
 
   const login = async (username: string, password: string) => {
-    if (!initialized) return;
+    setAuthState((prev) => ({ ...prev, loading: true }));
 
-    setLoading(true);
     try {
-      const { data }: { data: LoginResponseProps } = await api.post(
+      await api.post(
         "/auth/login/",
         { username, password },
         { withCredentials: true }
       );
 
-      setAccessToken(data.access);
-      api.defaults.headers.common.Authorization = `Bearer ${data.access}`;
+      const user = await fetchUserProfile();
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      await fetchUserProfile();
-      console.log("Cookies => ", document.cookie);
+      setAuthState({
+        user,
+        loading: false,
+        initialized: true,
+      });
       toast("Logged in successfully");
     } catch (error) {
       const message = axios.isAxiosError(error)
         ? error.response?.data?.message || error.message
         : "Login failed";
       toast(message);
-    } finally {
-      setLoading(false);
+      setAuthState((prev) => ({ ...prev, loading: false }));
     }
   };
 
-  const logout = useCallback(() => {
-    setUser(null);
-    setAccessToken(null);
-    setLoading(false);
-    api.defaults.headers.common.Authorization = "";
-    api.post("/auth/logout/", {}, { withCredentials: true });
-  }, []);
+  const logout = useCallback(async () => {
+    try {
+      api.post("/auth/logout/", {}, { withCredentials: true });
+    } catch (error) {
+      console.log("Failed to logout: ", error);
+    } finally {
+      setAuthState({
+        user: null,
+        loading: false,
+        initialized: true,
+      });
+      processQueue(new Error("User logged out"));
+    }
+  }, [processQueue]);
 
   const handleAuthError = useCallback(
     async (error: any) => {
@@ -115,9 +123,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (isRefreshing.current) {
         return new Promise((resolve, reject) => {
           failedQueue.current.push({ resolve, reject });
-        }).then((token: unknown) => {
+        }).finally(() => {
           originalRequest.headers = originalRequest.headers || {};
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+          originalRequest.headers.Authorization = `Bearer ${api.defaults.headers.common.Authorization}`;
           return api(originalRequest);
         });
       }
@@ -126,8 +134,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isRefreshing.current = true;
 
       try {
-        console.log("Token expired, refreshing");
-        const { data } = await api.post(
+        await api.post(
           "/auth/refresh/",
           {},
           {
@@ -135,19 +142,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         );
 
-        const { accessToken: access } = data;
-
-        setAccessToken(access);
-        api.defaults.headers.common.Authorization = `Bearer ${access}`;
-        processQueue(null, access);
-
-        originalRequest.headers = originalRequest.headers || {};
-        originalRequest.headers.Authorization = `Bearer ${access}`;
-
+        processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
-        logout();
+        processQueue(refreshError);
+        await logout();
         return Promise.reject(refreshError);
       } finally {
         isRefreshing.current = false;
@@ -158,9 +157,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const requestInterceptor = api.interceptors.request.use((config) => {
-      if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
-      }
       config.withCredentials = true;
       return config;
     });
@@ -174,37 +170,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       api.interceptors.request.eject(requestInterceptor);
       api.interceptors.request.eject(responseInterceptor);
     };
-  }, [accessToken, handleAuthError]);
+  }, [handleAuthError]);
 
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        if (document.cookie.includes("refresh_token")) {
-          const { data } = await api.post(
+        if (document.cookie.includes('refresh_token')) {
+          await api.post(
             "/auth/refresh/",
             {},
             {
               withCredentials: true,
             }
           );
-
-          setAccessToken(data.access);
-          api.defaults.headers.common.Authorization = `Bearer ${data.access}`;
-          await fetchUserProfile();
         }
+        const user = await fetchUserProfile();
+
+        setAuthState({
+          user,
+          loading: false,
+          initialized: true,
+        });
       } catch (error) {
-        logout();
-      } finally {
-        setLoading(false);
-        setInitialized(true);
+        setAuthState({
+          user: null,
+          loading: false,
+          initialized: true,
+        });
       }
     };
 
     initializeAuth();
-  }, [fetchUserProfile, logout]);
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{
+        user: authState.user,
+        login,
+        logout,
+        loading: authState.loading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
